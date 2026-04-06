@@ -1,159 +1,133 @@
-const apiKey = 'd1cdbb26505d921a4dc5358f019a531a'; // מפתח ה-API שלך
-const city = 'Jerusalem,IL'; // שם העיר (לדוגמה ירושלים)
-const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
+const API_KEY = 'd1cdbb26505d921a4dc5358f019a531a';
 
-// פונקציה שתשאב את הנתונים מה-API
-async function getWeatherData() {
+const mainRegion = { name: 'יהודה', lat: 31.5326, lon: 35.0998 }; 
+
+const otherCities = [
+    { id: 'Jerusalem', nameHebrew: 'ירושלים' },
+    { id: 'Tel Aviv', nameHebrew: 'תל אביב' },
+    { id: 'Beersheba', nameHebrew: 'באר שבע' },
+    { id: 'Haifa', nameHebrew: 'חיפה' },
+    { id: 'Safed', nameHebrew: 'הגליל (צפת)' }
+];
+
+function displayDate() {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const today = new Date().toLocaleDateString('he-IL', options);
+    document.getElementById('date-display').innerText = today;
+}
+
+function getWindDirection(degree) {
+    if (degree >= 337.5 || degree < 22.5) return 'צפונית';
+    if (degree >= 22.5 && degree < 67.5) return 'צפונית-מזרחית';
+    if (degree >= 67.5 && degree < 112.5) return 'מזרחית';
+    if (degree >= 112.5 && degree < 157.5) return 'דרומית-מזרחית';
+    if (degree >= 157.5 && degree < 202.5) return 'דרומית';
+    if (degree >= 202.5 && degree < 247.5) return 'דרומית-מערבית';
+    if (degree >= 247.5 && degree < 292.5) return 'מערבית';
+    if (degree >= 292.5 && degree < 337.5) return 'צפונית-מערבית';
+    return '-';
+}
+
+function calculateFireRisk(temp, humidity, windSpeedKmh) {
+    if (temp > 32 && humidity < 25 && windSpeedKmh > 20) return { text: 'קיצוני', class: 'risk-extreme' };
+    if (temp > 28 && humidity < 35 && windSpeedKmh > 15) return { text: 'גבוה', class: 'risk-high' };
+    if (temp > 24 && humidity < 45) return { text: 'בינוני', class: 'risk-medium' };
+    return { text: 'נמוך', class: 'risk-low' };
+}
+
+function msToKmh(ms) {
+    return (ms * 3.6).toFixed(1);
+}
+
+// פונקציה חדשה להחלפת רקע לפי מזג האוויר
+function setDynamicBackground(weatherCondition) {
+    const body = document.body;
+    body.className = ''; // ניקוי מחלקות קיימות
+    
+    switch (weatherCondition) {
+        case 'Clear':
+            body.classList.add('bg-clear');
+            break;
+        case 'Clouds':
+            body.classList.add('bg-clouds');
+            break;
+        case 'Rain':
+        case 'Drizzle':
+            body.classList.add('bg-rain');
+            break;
+        case 'Thunderstorm':
+            body.classList.add('bg-thunderstorm');
+            break;
+        case 'Snow':
+            body.classList.add('bg-snow');
+            break;
+        default:
+            body.classList.add('bg-default');
+    }
+}
+
+async function fetchMainRegionData() {
     try {
-        const response = await fetch(apiUrl);
-
-        // אם התשובה מה-API לא תקינה, נשלול אותה
-        if (!response.ok) {
-            throw new Error(`שגיאה בקבלת הנתונים, סטטוס: ${response.status}`);
-        }
-
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${mainRegion.lat}&lon=${mainRegion.lon}&appid=${API_KEY}&units=metric&lang=he`);
         const data = await response.json();
         
-        // אם הנתונים לא תקינים, נסמן שגיאה
-        if (!data || !data.wind || !data.main) {
-            throw new Error('הנתונים לא הושגו כראוי');
-        }
-
-        // מוציאים את נתוני מהירות הרוח והלחות
-        const windSpeed = data.wind.speed; // מהירות הרוח בקמ"ש
-        const humidity = data.main.humidity; // רמת הלחות באחוזים
-        const windDirection = data.wind.deg; // כיוון הרוח במעלות
+        const windSpeed = msToKmh(data.wind.speed);
+        const humidity = data.main.humidity;
+        const temp = data.main.temp;
+        const windDir = getWindDirection(data.wind.deg);
+        const fireRisk = calculateFireRisk(temp, humidity, windSpeed);
         
-        // עדכון המידע בממשק המשתמש
-        document.getElementById('wind-speed').textContent = `${windSpeed} קמ"ש`;
-        document.getElementById('humidity').textContent = `${humidity} %`;
+        // קריאה לפונקציית שינוי הרקע עם המצב הנוכחי (לדוגמה: "Clear", "Clouds")
+        const weatherCondition = data.weather[0].main;
+        setDynamicBackground(weatherCondition);
+
+        document.getElementById('judea-wind').innerText = `${windSpeed} קמ"ש`;
+        document.getElementById('judea-humidity').innerText = `${humidity}%`;
+        document.getElementById('judea-wind-dir').innerText = windDir;
         
-        // חישוב כיוון הרוח
-        const windDirectionText = getWindDirection(windDirection);
-        document.getElementById('wind-direction').textContent = `כיוון הרוח: ${windDirectionText}`;
-
-        // חישוב אינדקס הסיכון
-        calculateFireRiskIndex(windSpeed, humidity);
-
-        // הצגת תאריך ויום בשבוע
-        displayDateAndDay();
-
-        // עדכון מצב מזג האוויר
-        updateWeatherIconAndBackground(data.weather[0].main);
+        const fireRiskEl = document.getElementById('judea-fire-risk');
+        fireRiskEl.innerText = fireRisk.text;
+        fireRiskEl.className = `metric-value fire-risk ${fireRisk.class}`;
 
     } catch (error) {
-        console.error('Error fetching weather data:', error);
-        document.getElementById('weather-info').innerHTML = `<p style='color:red;'>שגיאה בהבאת נתוני מזג האוויר: ${error.message}</p>`;
+        console.error('Error fetching main region data:', error);
     }
 }
 
-// פונקציה להמיר כיוון רוח במעלות לטקסט (צפון, דרום, מזרח, מערב וכו')
-function getWindDirection(degrees) {
-    if (degrees >= 0 && degrees < 22.5) return "צפון";
-    else if (degrees >= 22.5 && degrees < 67.5) return "צפון מזרח";
-    else if (degrees >= 67.5 && degrees < 112.5) return "מזרח";
-    else if (degrees >= 112.5 && degrees < 157.5) return "דרום מזרח";
-    else if (degrees >= 157.5 && degrees < 202.5) return "דרום";
-    else if (degrees >= 202.5 && degrees < 247.5) return "דרום מערב";
-    else if (degrees >= 247.5 && degrees < 292.5) return "מערב";
-    else if (degrees >= 292.5 && degrees < 337.5) return "צפון מערב";
-    else return "צפון";
-}
+async function fetchOtherCitiesData() {
+    const container = document.getElementById('other-cities');
+    container.innerHTML = ''; 
 
-// פונקציה לעדכון אייקון ומצב הרקע על פי מזג האוויר
-function updateWeatherIconAndBackground(weather) {
-    const body = document.body;
-    const weatherIcon = document.getElementById('weather-icon');
-
-    // ברירת המחדל של הרקע היא שמיים כחולים
-    body.classList.remove('sunny', 'cloudy', 'fire-risk-high');
-
-    if (weather === 'Clear') {
-        body.classList.add('sunny');
-        weatherIcon.textContent = '☀️'; // אייקון של שמש
-    } else if (weather === 'Clouds') {
-        body.classList.add('cloudy');
-        weatherIcon.textContent = '☁️'; // אייקון של עננים
-    } else if (weather === 'Rain') {
-        body.classList.add('cloudy');
-        weatherIcon.textContent = '🌧️'; // אייקון של גשם
-    }
-
-    // אם יש סיכון גבוה לשריפות, נוסיף את הרקע של האש
-    const fireRiskIndex = document.getElementById('index').classList.contains('high');
-    if (fireRiskIndex) {
-        body.classList.add('fire-risk-high');
-        weatherIcon.textContent += ' 🔥'; // אייקון של אש
+    for (const city of otherCities) {
+        try {
+            const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city.id},IL&appid=${API_KEY}&units=metric&lang=he`);
+            const data = await response.json();
+            
+            const temp = Math.round(data.main.temp);
+            const desc = data.weather[0].description;
+            
+            const cardHtml = `
+                <div class="city-card">
+                    <div class="city-name">${city.nameHebrew}</div>
+                    <div class="city-temp">${temp}°C</div>
+                    <div class="city-details">${desc}</div>
+                </div>
+            `;
+            container.innerHTML += cardHtml;
+        } catch (error) {
+            console.error(`Error fetching data for ${city.nameHebrew}:`, error);
+        }
     }
 }
 
-// פונקציה לחישוב אינדקס הסיכון לשריפות
-function calculateFireRiskIndex(windSpeed, humidity) {
-    let fireRiskIndex;
-    let indexText;
-    let indexClass;
-
-    // חישוב סיווג מהירות הרוח
-    let windCategory;
-    if (windSpeed > 30) {
-        windCategory = 'חזקה מאוד'; // מעל 30 קמ"ש
-    } else if (windSpeed >= 20) {
-        windCategory = 'חזקה'; // 20-30 קמ"ש
-    } else if (windSpeed >= 10) {
-        windCategory = 'בינונית'; // 10-20 קמ"ש
-    } else {
-        windCategory = 'חלשה'; // עד 10 קמ"ש
-    }
-
-    // חישוב סיווג הלחות
-    let humidityCategory;
-    if (humidity > 30) {
-        humidityCategory = 'קיצונית'; // מעל 30%
-    } else if (humidity >= 20) {
-        humidityCategory = 'גבוהה'; // מ-10% עד 20%
-    } else if (humidity >= 10) {
-        humidityCategory = 'בינונית'; // 10-20%
-    } else {
-        humidityCategory = 'נמוכה מאוד'; // עד 10%
-    }
-
-    // הגדרת אינדקס הסיכון לפי סיווג הרוח והלחות
-    if (windCategory === 'חזקה מאוד' && humidityCategory === 'נמוכה מאוד') {
-        indexText = 'סיכון גבוה לשריפות';
-        indexClass = 'high';
-    } else if (windCategory === 'חזקה' && humidityCategory === 'נמוכה מאוד') {
-        indexText = 'סיכון גבוה לשריפות';
-        indexClass = 'high';
-    } else if (windCategory === 'בינונית' && humidityCategory === 'נמוכה') {
-        indexText = 'סיכון בינוני לשריפות';
-        indexClass = 'medium';
-    } else if (windCategory === 'חלשה' && humidityCategory === 'נמוכה') {
-        indexText = 'סיכון נמוך לשריפות';
-        indexClass = 'low';
-    } else {
-        indexText = 'סיכון נמוך לשריפות';
-        indexClass = 'low';
-    }
-
-    // עדכון רמת הסיכון בממשק המשתמש
-    document.getElementById('fire-index-text').textContent = indexText;
-    document.getElementById('index').className = indexClass;
-}
-
-// פונקציה להצגת תאריך והיום בשבוע
-function displayDateAndDay() {
-    const today = new Date();
-
-    // קבלת היום בשבוע
-    const daysOfWeek = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-    const dayOfWeek = daysOfWeek[today.getDay()];
-
-    // קבלת התאריך
-    const date = today.toLocaleDateString('he-IL'); // תאריך בפורמט ישראלי
-
-    // עדכון התאריך והיום בשבוע בממשק המשתמש
-    document.getElementById('current-day').textContent = `יום: ${dayOfWeek}`;
-    document.getElementById('current-date').textContent = `תאריך: ${date}`;
-}
-
-getWeatherData();
+window.onload = () => {
+    displayDate();
+    fetchMainRegionData();
+    fetchOtherCitiesData();
+    
+    // רענון הנתונים כל 30 דקות
+    setInterval(() => {
+        fetchMainRegionData();
+        fetchOtherCitiesData();
+    }, 30 * 60 * 1000);
+};
