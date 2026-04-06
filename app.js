@@ -10,15 +10,13 @@ const otherCities = [
     { id: 'Safed', nameHebrew: 'הגליל (צפת)' }
 ];
 
-// הצגת תאריך ושעה מדויקת - מתעדכן חיה
+// הצגת תאריך ושעה מדויקת - מופיע במסך הראשי
 function displayDateTime() {
     const now = new Date();
     
-    // אפשרויות לתאריך
     const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const dateString = now.toLocaleDateString('he-IL', dateOptions);
     
-    // אפשרויות לשעה
     const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
     const timeString = now.toLocaleTimeString('he-IL', timeOptions);
     
@@ -115,49 +113,74 @@ async function fetchOtherCitiesData() {
     }
 }
 
-// === פונקציות חיבור למערכת לפיד ===
+// === מערכת לפיד בזמן אמת (WebSocket) ===
 
-// פונקציה להצגת ההתראה. יש לקרוא לפונקציה זו כשמתקבל נתון מה-API שלכם
+// את הכתובת הזו תצטרך להחליף בכתובת האמיתית שתקבל מאגף תקשוב
+const LAPID_WS_URL = 'wss://your-internal-server.fire.gov.il/alerts'; 
+let lapidSocket;
+
+function connectToLapidRealTime() {
+    try {
+        lapidSocket = new WebSocket(LAPID_WS_URL);
+
+        // כשהחיבור נפתח בהצלחה
+        lapidSocket.onopen = () => {
+            console.log('מחובר למערכת לפיד בהצלחה. מאזין לאירועים...');
+        };
+
+        // ברגע שמתקבל אירוע חדש בזמן אמת
+        lapidSocket.onmessage = (event) => {
+            // השרת לרוב שולח את המידע כאובייקט JSON, אנחנו ממירים אותו כדי שנוכל לקרוא אותו
+            const eventData = JSON.parse(event.data);
+            
+            // מניחים שהשדה שמכיל את תיאור האירוע נקרא 'description', יש לוודא זאת מול מחלקת ה-IT
+            const alertMessage = eventData.description || "אירוע חדש התקבל במערכת.";
+            
+            showLapidAlert(alertMessage);
+        };
+
+        // במקרה של ניתוק מהשרת (למשל נפילת רשת)
+        lapidSocket.onclose = () => {
+            console.log('החיבור למערכת לפיד נותק. מנסה להתחבר מחדש בעוד 5 שניות...');
+            setTimeout(connectToLapidRealTime, 5000); // ניסיון התחברות מחדש אוטומטי
+        };
+
+        // במקרה של שגיאה
+        lapidSocket.onerror = (error) => {
+            console.error('שגיאת חיבור ל-WebSocket:', error);
+        };
+    } catch (e) {
+        console.error('שגיאה בהקמת חיבור:', e);
+    }
+}
+
 function showLapidAlert(eventText) {
     const modal = document.getElementById('lapid-modal');
     const details = document.getElementById('lapid-event-details');
     
     details.innerText = eventText;
     modal.classList.add('active');
-    
-    // כאן אפשר להוסיף פקודה לניגון צליל אזעקה אם רוצים:
-    // new Audio('alarm.mp3').play();
 }
 
-// פונקציה לסגירת ההתראה
 function closeLapidAlert() {
     const modal = document.getElementById('lapid-modal');
     modal.classList.remove('active');
 }
 
-// הדגמה: הקפצת אירוע 10 שניות לאחר טעינת האפליקציה (מחק/החלף זאת עם ה-WebSocket שלכם)
-function setupLapidMock() {
-    setTimeout(() => {
-        showLapidAlert("דיווח חדש: שריפת חורש באזור התעשייה. כוחות בדרכם לנקודה.");
-    }, 10000);
-}
-
-
 // הפעלת פונקציות בעת טעינת העמוד
 window.onload = () => {
-    // הפעלה ראשונית של שעון ותאריך, ועדכון כל שנייה (1000 מילישניות)
+    // שעון שמתעדכן כל שנייה
     displayDateTime();
     setInterval(displayDateTime, 1000);
     
+    // משיכת נתוני מזג אוויר ורענון כל חצי שעה
     fetchMainRegionData();
     fetchOtherCitiesData();
-    
-    // רענון נתוני מזג אוויר כל 30 דקות
     setInterval(() => {
         fetchMainRegionData();
         fetchOtherCitiesData();
     }, 30 * 60 * 1000);
 
-    // הפעלת סימולציית ההתראות (כדי שתוכל לראות איך זה נראה)
-    setupLapidMock();
+    // התחברות לערוץ התקשורת החי של מערכת לפיד
+    // connectToLapidRealTime(); // מוסתר בהערה עד שתזין את הכתובת האמיתית כדי למנוע שגיאות בדפדפן
 };
