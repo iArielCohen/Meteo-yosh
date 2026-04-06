@@ -8,22 +8,22 @@
 body {
     width: 100vw;
     height: 100vh;
-    overflow: hidden; /* מניעת גלילה */
+    overflow: hidden;
     color: #ffffff;
     display: flex;
     flex-direction: column;
-    transition: background 1s ease-in-out; /* מעבר חלק בין הרקעים */
+    transition: background 1s ease-in-out;
 }
 
 /* רקעים דינמיים לפי מזג אוויר */
 body.bg-default { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
-body.bg-clear { background: linear-gradient(135deg, #2980b9 0%, #6dd5fa 100%); } /* שמש / בהיר */
-body.bg-clouds { background: linear-gradient(135deg, #606c88 0%, #3f4c6b 100%); } /* מעונן */
-body.bg-rain { background: linear-gradient(135deg, #3a7bd5 0%, #3a6073 100%); } /* גשום */
-body.bg-thunderstorm { background: linear-gradient(135deg, #0f2027 0%, #203a43 100%); } /* סופת רעמים */
-body.bg-snow { background: linear-gradient(135deg, #8e9eab 0%, #eef2f3 100%); color: #333333; } /* שלג - הטקסט כהה לקריאות */
+body.bg-clear { background: linear-gradient(135deg, #2980b9 0%, #6dd5fa 100%); }
+body.bg-clouds { background: linear-gradient(135deg, #606c88 0%, #3f4c6b 100%); }
+body.bg-rain { background: linear-gradient(135deg, #3a7bd5 0%, #3a6073 100%); }
+body.bg-thunderstorm { background: linear-gradient(135deg, #0f2027 0%, #203a43 100%); }
+body.bg-snow { background: linear-gradient(135deg, #8e9eab 0%, #eef2f3 100%); color: #333333; }
 
-/* חלק עליון - מחוז יהודה */
+/* חלק עליון */
 .main-section {
     flex: 2;
     display: flex;
@@ -35,9 +35,11 @@ body.bg-snow { background: linear-gradient(135deg, #8e9eab 0%, #eef2f3 100%); co
 }
 
 .date-container {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     margin-bottom: 1rem;
     opacity: 0.9;
+    font-weight: bold;
+    letter-spacing: 1px;
 }
 
 .main-title {
@@ -85,7 +87,7 @@ body.bg-snow { background: linear-gradient(135deg, #8e9eab 0%, #eef2f3 100%); co
 .risk-high { background-color: #e67e22; color: white; }
 .risk-extreme { background-color: #e74c3c; color: white; }
 
-/* חלק תחתון - שאר האזורים */
+/* חלק תחתון */
 .bottom-section {
     flex: 1;
     display: flex;
@@ -128,4 +130,86 @@ body.bg-snow { background: linear-gradient(135deg, #8e9eab 0%, #eef2f3 100%); co
 .city-details {
     font-size: 0.9rem;
     opacity: 0.7;
+}
+
+/* מערכת לפיד - עיצוב חלון קופץ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: #c0392b; /* אדום חירום */
+    color: white;
+    border-radius: 15px;
+    width: 80%;
+    max-width: 700px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    text-align: center;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+    border: 3px solid #ff7675;
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+    animation: pulseAlert 2s infinite; /* אנימציית הבהוב קלה */
+}
+
+@keyframes pulseAlert {
+    0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(231, 76, 60, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(255,255,255,0.3);
+    padding-bottom: 1rem;
+}
+
+.modal-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: #ffeaa7;
+}
+
+.modal-body {
+    font-size: 1.8rem;
+    line-height: 1.5;
+    font-weight: bold;
 }
