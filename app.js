@@ -10,10 +10,19 @@ const otherCities = [
     { id: 'Safed', nameHebrew: 'הגליל (צפת)' }
 ];
 
-function displayDate() {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const today = new Date().toLocaleDateString('he-IL', options);
-    document.getElementById('date-display').innerText = today;
+// הצגת תאריך ושעה מדויקת - מתעדכן חיה
+function displayDateTime() {
+    const now = new Date();
+    
+    // אפשרויות לתאריך
+    const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const dateString = now.toLocaleDateString('he-IL', dateOptions);
+    
+    // אפשרויות לשעה
+    const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    const timeString = now.toLocaleTimeString('he-IL', timeOptions);
+    
+    document.getElementById('date-display').innerText = `${dateString} | ${timeString}`;
 }
 
 function getWindDirection(degree) {
@@ -39,30 +48,18 @@ function msToKmh(ms) {
     return (ms * 3.6).toFixed(1);
 }
 
-// פונקציה חדשה להחלפת רקע לפי מזג האוויר
 function setDynamicBackground(weatherCondition) {
     const body = document.body;
-    body.className = ''; // ניקוי מחלקות קיימות
+    body.className = ''; 
     
     switch (weatherCondition) {
-        case 'Clear':
-            body.classList.add('bg-clear');
-            break;
-        case 'Clouds':
-            body.classList.add('bg-clouds');
-            break;
+        case 'Clear': body.classList.add('bg-clear'); break;
+        case 'Clouds': body.classList.add('bg-clouds'); break;
         case 'Rain':
-        case 'Drizzle':
-            body.classList.add('bg-rain');
-            break;
-        case 'Thunderstorm':
-            body.classList.add('bg-thunderstorm');
-            break;
-        case 'Snow':
-            body.classList.add('bg-snow');
-            break;
-        default:
-            body.classList.add('bg-default');
+        case 'Drizzle': body.classList.add('bg-rain'); break;
+        case 'Thunderstorm': body.classList.add('bg-thunderstorm'); break;
+        case 'Snow': body.classList.add('bg-snow'); break;
+        default: body.classList.add('bg-default');
     }
 }
 
@@ -77,9 +74,7 @@ async function fetchMainRegionData() {
         const windDir = getWindDirection(data.wind.deg);
         const fireRisk = calculateFireRisk(temp, humidity, windSpeed);
         
-        // קריאה לפונקציית שינוי הרקע עם המצב הנוכחי (לדוגמה: "Clear", "Clouds")
-        const weatherCondition = data.weather[0].main;
-        setDynamicBackground(weatherCondition);
+        setDynamicBackground(data.weather[0].main);
 
         document.getElementById('judea-wind').innerText = `${windSpeed} קמ"ש`;
         document.getElementById('judea-humidity').innerText = `${humidity}%`;
@@ -120,14 +115,49 @@ async function fetchOtherCitiesData() {
     }
 }
 
+// === פונקציות חיבור למערכת לפיד ===
+
+// פונקציה להצגת ההתראה. יש לקרוא לפונקציה זו כשמתקבל נתון מה-API שלכם
+function showLapidAlert(eventText) {
+    const modal = document.getElementById('lapid-modal');
+    const details = document.getElementById('lapid-event-details');
+    
+    details.innerText = eventText;
+    modal.classList.add('active');
+    
+    // כאן אפשר להוסיף פקודה לניגון צליל אזעקה אם רוצים:
+    // new Audio('alarm.mp3').play();
+}
+
+// פונקציה לסגירת ההתראה
+function closeLapidAlert() {
+    const modal = document.getElementById('lapid-modal');
+    modal.classList.remove('active');
+}
+
+// הדגמה: הקפצת אירוע 10 שניות לאחר טעינת האפליקציה (מחק/החלף זאת עם ה-WebSocket שלכם)
+function setupLapidMock() {
+    setTimeout(() => {
+        showLapidAlert("דיווח חדש: שריפת חורש באזור התעשייה. כוחות בדרכם לנקודה.");
+    }, 10000);
+}
+
+
+// הפעלת פונקציות בעת טעינת העמוד
 window.onload = () => {
-    displayDate();
+    // הפעלה ראשונית של שעון ותאריך, ועדכון כל שנייה (1000 מילישניות)
+    displayDateTime();
+    setInterval(displayDateTime, 1000);
+    
     fetchMainRegionData();
     fetchOtherCitiesData();
     
-    // רענון הנתונים כל 30 דקות
+    // רענון נתוני מזג אוויר כל 30 דקות
     setInterval(() => {
         fetchMainRegionData();
         fetchOtherCitiesData();
     }, 30 * 60 * 1000);
+
+    // הפעלת סימולציית ההתראות (כדי שתוכל לראות איך זה נראה)
+    setupLapidMock();
 };
