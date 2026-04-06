@@ -1,117 +1,131 @@
-/* עיצוב כללי */
-body {
-    font-family: 'Arial', sans-serif;
-    direction: rtl;
-    text-align: center;
-    background-color: #b3d9ff;
-    transition: background-color 0.5s;
-    background-size: cover;
-    background-position: center center;
-}
-
-.sunny {
-    background-image: url('https://example.com/sunny.jpg'); /* תמונה לשמש */
-}
-
-.cloudy {
-    background-image: url('https://example.com/cloudy.jpg'); /* תמונה למעונן */
-}
-
-.fire-risk-high {
-    background-image: url('https://example.com/fire.jpg'); /* תמונה לשריפות */
-}
-
-/* עיצוב האזורים */
-#weather-info {
-    background-color: rgba(255, 255, 255, 0.7);
-    padding: 20px;
-    border-radius: 10px;
-    margin: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    font-size: 18px;
-    color: #333;
-    margin-top: 10px;
-    font-weight: bold;
-}
-
-#fire-risk {
-    margin-top: 20px;
-}
-
-#index {
-    padding: 20px;
-    border-radius: 10px;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.low {
-    background-color: #99ccff;
-}
-
-.medium {
-    background-color: #ffcc00;
-}
-
-.high {
-    background-color: #ff6666;
-}
-
-#date-info {
-    margin-top: 20px;
-    font-size: 18px;
-}
-
-#weather-icon {
-    font-size: 40px;
-    margin-top: 10px;
-}
-
-/* עיצוב תגובות טעינה */
-#loading {
-    font-size: 20px;
-    color: #ff6666;
-}
-#wind-direction {
-    font-size: 18px;
-    color: #333;
-    margin-top: 10px;
-    font-weight: bold;
-}
-/* עיצוב בסיסי */
-body {
-    font-family: Arial, sans-serif;
-    direction: rtl;
-    background-color: #f0f0f0;
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* מניעת גלילה */
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    transition: background 1s ease-in-out; /* מעבר חלק בין הרקעים */
+}
+
+/* רקעים דינמיים לפי מזג אוויר */
+body.bg-default { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+body.bg-clear { background: linear-gradient(135deg, #2980b9 0%, #6dd5fa 100%); } /* שמש / בהיר */
+body.bg-clouds { background: linear-gradient(135deg, #606c88 0%, #3f4c6b 100%); } /* מעונן */
+body.bg-rain { background: linear-gradient(135deg, #3a7bd5 0%, #3a6073 100%); } /* גשום */
+body.bg-thunderstorm { background: linear-gradient(135deg, #0f2027 0%, #203a43 100%); } /* סופת רעמים */
+body.bg-snow { background: linear-gradient(135deg, #8e9eab 0%, #eef2f3 100%); color: #333333; } /* שלג - הטקסט כהה לקריאות */
+
+/* חלק עליון - מחוז יהודה */
+.main-section {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
     text-align: center;
 }
 
-.sunny {
-    background-color: #ffeb3b; /* רקע של שמש */
+.date-container {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
 }
 
-.cloudy {
-    background-color: #b0bec5; /* רקע של עננים */
+.main-title {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
-.fire-risk-high {
-    background-color: #ff5722; /* רקע של אש */
+.main-metrics {
+    display: flex;
+    gap: 3rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* עיצוב האייקון */
-#weather-icon {
-    font-size: 100px;
-    margin-top: 20px;
+.metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-/* עיצוב מידע מזג האוויר */
-#weather-info {
-    margin-top: 20px;
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: bold;
 }
 
-#wind-speed-info, #humidity-info, #wind-direction-info {
-    font-size: 18px;
-    margin: 10px 0;
+.metric-label {
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+.fire-risk {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.risk-low { background-color: #2ecc71; color: white; }
+.risk-medium { background-color: #f1c40f; color: black; }
+.risk-high { background-color: #e67e22; color: white; }
+.risk-extreme { background-color: #e74c3c; color: white; }
+
+/* חלק תחתון - שאר האזורים */
+.bottom-section {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+.city-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    width: 18%;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.city-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.city-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.city-temp {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.city-details {
+    font-size: 0.9rem;
+    opacity: 0.7;
 }
