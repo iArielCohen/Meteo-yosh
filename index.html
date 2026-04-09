@@ -3,48 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> מטאורולוגיה - יהודה</title>
+    <title>שירותי מטאורולוגיה - יהודה (שדרוג 2026)</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-default">
-
-    <div class="main-section">
-        <div class="date-container" id="date-display">
-            </div>
-        <div class="main-title">מחוז יהודה</div>
-        
-        <div class="main-metrics">
-            <div class="metric">
-                <div class="metric-value" id="judea-wind">- קמ"ש</div>
-                <div class="metric-label">מהירות רוח</div>
-            </div>
-            <div class="metric">
-                <div class="metric-value" id="judea-humidity">-%</div>
-                <div class="metric-label">לחות</div>
-            </div>
-            <div class="metric">
-                <div class="metric-value" id="judea-wind-dir">-</div>
-                <div class="metric-label">כיוון רוח</div>
-            </div>
-            <div class="metric">
-                <div class="metric-value fire-risk" id="judea-fire-risk">-</div>
-                <div class="metric-label">סיכון שריפות</div>
-            </div>
-        </div>
+<body>
+    <div id="dynamic-bg" class="bg-layer">
+        <div id="rain-container" class="weather-effect rain-effect"></div>
+        <div id="sun-effect" class="weather-effect sun-effect"></div>
+        <div id="clouds-effect" class="weather-effect clouds-effect"></div>
     </div>
 
-    <div class="bottom-section" id="other-cities">
+    <div class="content-wrapper">
+        <div class="main-section card">
+            <div class="date-container" id="date-display">
+                </div>
+            <div class="main-title">מחוז יהודה</div>
+            
+            <div class="main-metrics-wrapper">
+                <div class="metric">
+                    <div class="metric-value" id="judea-wind">- קמ"ש</div>
+                    <div class="metric-label">מהירות רוח</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="judea-humidity">-%</div>
+                    <div class="metric-label">לחות</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" id="judea-wind-dir">-</div>
+                    <div class="metric-label">כיוון רוח</div>
+                </div>
+                <div class="metric fire-metric">
+                    <div class="metric-value fire-risk" id="judea-fire-risk">-</div>
+                    <div class="metric-label">סיכון שריפות</div>
+                </div>
+            </div>
         </div>
 
-    <div id="lapid-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title">🚨 התראת מערכת לפיד 🚨</span>
-                <button class="close-btn" onclick="closeLapidAlert()">&times;</button>
+        <div class="bottom-section" id="other-cities">
             </div>
-            <div class="modal-body" id="lapid-event-details">
-                </div>
-        </div>
     </div>
 
     <script src="app.js"></script>
